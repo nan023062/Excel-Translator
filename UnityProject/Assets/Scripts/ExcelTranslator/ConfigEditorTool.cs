@@ -1,5 +1,6 @@
 ﻿#if UNITY_EDITOR
 using UnityEditor;
+#endif
 using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
@@ -7,28 +8,22 @@ using System.Text;
 using OfficeOpenXml;
 using Engine.Core.ExcelTranslator;
 
-namespace Engine.Core
+namespace Engine.Config
 {
-    public class DataEditorTool : Editor
+    public class DataEditorTool
     {
         private readonly static string dataPath = Application.dataPath;
-        public readonly static string ExcelFloder = Application.dataPath + "/../../DevelopTools/ExcelConfig/";
-        public readonly static string ByteFilePath = dataPath + "/GameAssets/Configs/";
-        public readonly static string JsonFilePath = dataPath + "/GameAssets/Configs/Json/";
-        public readonly static string LuaDataEntryPath = dataPath + "/GameAssets/LuaCode/GenConfigTables/";
-        public readonly static string CSharpDataEntryPath = dataPath + "/Scripts/GlobalDataClass/GenConfigClass/";
+        public readonly static string ExcelFloder = Application.dataPath + "/../../ExcelFiles/";
+        public readonly static string ByteFilePath = dataPath + "/Scripts/Sample/GenBytes/";
+        public readonly static string JsonFilePath = dataPath + "/Scripts/Sample/GenJsonConfig/";
+        public readonly static string LuaDataEntryPath = dataPath + "/Scripts/Sample/GenLuaTable/";
+        public readonly static string CSharpDataEntryPath = dataPath + "/Scripts/Sample/GenCSharpClass/";
 
+#if UNITY_EDITOR
         [MenuItem("Tools/Config工具/一键生成配置(Lua & Byte & C#)", false)]
         private static void TranslatorExcelConfigs()
         {
             TranslatorExcelConfigs(true);
-        }
-
-        [MenuItem("Tools/Config工具/Test", false)]
-        public static void testc()
-        {
-            var excelSheet = ExcelTranslatorUtility.ReadExcelSheet(ExcelFloder, "god_damage");
-            var json = TranslatorTable.ToJson(excelSheet, 0X7FFFFFFF);
         }
 
         public static void TranslatorExcelConfigs(bool showDialog, int readMask = 0x7FFFFFFF)
@@ -54,6 +49,10 @@ namespace Engine.Core
                 //c#
                 string csharp_path = Path.Combine(CSharpDataEntryPath, translator.sheetName + ".cs");
                 File.WriteAllBytes(csharp_path, UTF8Encoding.UTF8.GetBytes(translator.ToDataEntryClass()));
+
+                //json
+                string json_path = Path.Combine(JsonFilePath, translator.sheetName + ".txt");
+                File.WriteAllBytes(json_path, UTF8Encoding.UTF8.GetBytes(translator.ToJson()));
 
                 if (showDialog)
                 {
@@ -96,46 +95,6 @@ namespace Engine.Core
             });
             EditorUtility.ClearProgressBar();
         }
-
-        [MenuItem("Tools/Config工具/配置表检查/String表检查", false)]
-        private static void CheckStringKeyUniqueness()
-        {
-            CheckExcelKeyUniqueness("string_cfg");
-            CheckExcelNotEmptyCell("string_cfg");
-        }
-
-        private static void CheckExcelKeyUniqueness(string configName)
-        {
-            var excelSheet = ExcelTranslatorUtility.ReadExcelSheet(ExcelFloder, configName);
-            var checkIDMap = new Dictionary<string, int>();
-
-            var table = new TranslatorTable(excelSheet, 0x7FFFFFFF);
-            for (int i = 0; i < table.nRow; i++)
-            {
-                string id = table.ID(i);
-                int count = 0;
-                checkIDMap.TryGetValue(id, out count);
-                count++;
-                checkIDMap[id] = count;
-            }
-
-            bool result = true;
-            foreach (var configIDCount in checkIDMap)
-            {
-                if (configIDCount.Value > 1)
-                {
-                    Debug.LogErrorFormat("ID = {0}不唯一！，存在{1}个！", configIDCount.Key, configIDCount.Value);
-                    result = false;
-                }
-            }
-            if(result) Debug.LogFormat("配置表{0}的ID没有发现重复...", configName);
-        }
-
-        private static void CheckExcelNotEmptyCell(string configName)
-        {
-            var excelSheet = ExcelTranslatorUtility.ReadExcelSheet(ExcelFloder, configName);
-            var table = new TranslatorTable(excelSheet, 0x7FFFFFFF);
-        }
+#endif
     }
 }
-#endif

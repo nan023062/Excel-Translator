@@ -1,32 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using UnityEngine;
 using System.Reflection;
-using OfficeOpenXml;
 using Engine.Core.ExcelTranslator;
+using System.IO;
+using UnityEngine;
+using data;
 
 namespace Sample
 {
-    public class ConfigSample
+    public class ConfigSample : MonoBehaviour
     {
         private Dictionary<string, DataEntryCache> mDataEntryCaches = null;
 
-        private Dictionary<string, ExcelWorksheet> mCachedExcels = null;
-
-        public void Init()
+        public void Awake()
         {
             mDataEntryCaches = new Dictionary<string, DataEntryCache>();
-            mCachedExcels = new Dictionary<string, ExcelWorksheet>();
+        }
+
+        public DataEntry_sound_cfg sound;
+
+        public DataEntry_EffectConfig effect;
+
+        public void Start()
+        {
+            var soundCfg = GetTableCache<DataEntry_sound_cfg>();
+
+            sound = GetConfig<DataEntry_sound_cfg>("100001");
+
+            var effectCfg = GetTableCache<DataEntry_EffectConfig>();
+
+            effect = GetConfig<DataEntry_EffectConfig>("400023");
         }
 
         private byte[] LoadConfigBytes(string configName)
         {
-            byte[] bytes = null;
-
-
-
-            return bytes;
+            string path = Path.Combine(Engine.Config.DataEditorTool.ByteFilePath, configName + ".byte");
+            return File.ReadAllBytes(path);
         }
 
         public T GetConfig<T>(string id) where T : DataEntryBase
@@ -57,30 +67,6 @@ namespace Sample
             return entryCache;
         }
 
-        public byte[] GetLuaTableBytes(string configName)
-        {
-            byte[] bytes = LoadConfigBytes(configName);
-            string luaString = TranslatorTable.ToLuaLable(bytes);
-            return UTF8Encoding.UTF8.GetBytes(luaString);
-        }
-
-        public string GetJsonDataTable(string configName)
-        {
-            byte[] bytes = LoadConfigBytes(configName);
-            return TranslatorTable.ToJson(bytes);
-        }
-
-        public ExcelWorksheet ReadExcelSheet(string configName)
-        {
-            ExcelWorksheet sheet;
-            if (!mCachedExcels.TryGetValue(configName, out sheet))
-            {
-                string excelFloder = string.Empty;
-                sheet = ExcelTranslatorUtility.ReadExcelSheet(excelFloder, configName);
-                mCachedExcels.Add(configName, sheet);
-            }
-            return sheet;
-        }
     }
 
 }

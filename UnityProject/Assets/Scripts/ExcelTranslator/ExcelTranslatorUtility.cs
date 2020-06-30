@@ -93,8 +93,12 @@ namespace Engine.Core.ExcelTranslator
                     readCallback?.Invoke(fileInfo.Name, (i + 1) * 1f / fileInfos.Length);
                 }
             }
-            var json = UnityEngine.JsonUtility.ToJson(nameToPath);
-            File.WriteAllText(Path.Combine(excelFloder, NAME_TO_PATH), json.ToString());
+
+            StringBuilder sb = new StringBuilder();
+            foreach (var pair in nameToPath){
+                sb.Append(string.Format("{0}={1},", pair.Key, pair.Value));
+            }
+            File.WriteAllText(Path.Combine(excelFloder, NAME_TO_PATH), sb.ToString());
         }
 
         public static Dictionary<string, ExcelWorksheet> ReadALLExcelSheets(string excelFloder,
@@ -138,36 +142,6 @@ namespace Engine.Core.ExcelTranslator
             return mExcelSheetCaches;
         }
 
-        public static bool WriteExcelSheets(string filePath, List<ExcelWorksheet> sheelLst)
-        {
-            if (File.Exists(filePath) && filePath.EndsWith(".xlsx"))
-            {
-                try
-                {
-                    FileInfo output = new FileInfo(filePath);
-                    ExcelPackage ep = new ExcelPackage(output);
-                    //for (int i = 0; i < sheelLst.Count; i++)
-                    //{
-                    //    ExcelWorksheet sheet = ep.Workbook.Worksheets.Add(table.TableName);
-                    //    for (int row = 1; row <= table.NumberOfRows; row++)
-                    //    {
-                    //        for (int column = 1; column <= table.NumberOfColumns; column++)
-                    //        {
-                    //            sheet.Cells[row, column].Value = table.GetValue(row, column);
-                    //        }
-                    //    }
-                    //}
-                    ep.SaveAs(output);
-                    return true;
-                }
-                catch (System.Exception ex)
-                {
-                    throw new System.Exception(ex.Message);
-                }
-            }
-            return false;
-        }
-
         public static ExcelWorksheet ReadExcelSheet(string excelFloder, string sheetName)
         {
             if (mExcelSheetCaches == null) mExcelSheetCaches = new Dictionary<string, ExcelWorksheet>();
@@ -175,8 +149,18 @@ namespace Engine.Core.ExcelTranslator
             ExcelWorksheet sheet;
             if (!mExcelSheetCaches.TryGetValue(sheetName, out sheet))
             {
-                var json = File.ReadAllText(Path.Combine(excelFloder, NAME_TO_PATH));
-                var nameToPath = UnityEngine.JsonUtility.FromJson<Dictionary<string, string>>(json);
+                Dictionary<string, string> nameToPath = new Dictionary<string, string>();
+                var configSheetTPaths = File.ReadAllText(Path.Combine(excelFloder, NAME_TO_PATH));
+                var sheetToPaths = configSheetTPaths.Split(',');
+                foreach (var sheetToPath in sheetToPaths)
+                {
+                    if (string.IsNullOrEmpty(sheetToPath)) continue;
+                    var sheetAndPath = sheetToPath.Split('=');
+                    if(sheetAndPath != null && sheetAndPath.Length == 2){
+                        nameToPath.Add(sheetAndPath[0], sheetAndPath[1]);
+                    }
+                }
+
                 string excelName = string.Empty;
                 if (nameToPath.TryGetValue(sheetName, out excelName))
                 {
