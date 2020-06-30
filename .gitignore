@@ -1,0 +1,13 @@
+UnityProject/Library/
+UnityProject/UnityPackageManager/
+UnityProject/Temp/
+UnityProject/obj/
+obj.meta
+*.log
+*.sln
+*.csproj
+*.unityproj
+*.userprefs
+*.suo
+*.csproj.user
+*.tmp
