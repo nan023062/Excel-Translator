@@ -21,7 +21,7 @@ namespace Engine.Config
 
 #if UNITY_EDITOR
         [MenuItem("Tools/Config工具/一键生成配置(Lua & Byte & C#)", false)]
-        private static void TranslatorExcelConfigs()
+        private static void TranslatorAllExcelConfigs()
         {
             TranslatorExcelConfigs(true);
         }
@@ -85,7 +85,7 @@ namespace Engine.Config
             return ExcelSheets;
         }
 
-        [MenuItem("Tools/Config工具/生成Excel的映射文件", false)]
+        //[MenuItem("Tools/Config工具/生成Excel的映射文件", false)]
         private static void WriteExcelNameToPath()
         {
             ExcelTranslatorUtility.WriteExcelNameToPath(ExcelFloder, (excelName, prog) =>

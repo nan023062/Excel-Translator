@@ -1,1 +1,0 @@
-EffectConfig=EffectConfig.xlsx,sound_cfg=Sound.xlsx,
